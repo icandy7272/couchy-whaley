@@ -1,0 +1,11 @@
+{
+  "categories": [{"id": "apps", "name": "应用"}],
+  "sections": {},
+  "order": {},
+  "hidden": [],
+  "knownApps": [],
+  "setupDone": true,
+  "language": "zh",
+  "layout": 2,
+  "dateFormat": 7
+}

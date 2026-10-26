@@ -1,0 +1,59 @@
+# Couchy 微鲸适配版
+
+基于 [conreo/couchy-launcher v1.0.6](https://github.com/conreo/couchy-launcher/tree/v1.0.6) 的个人适配分支，面向微鲸旧款 Android 电视。目标是保留原装主页、设置与信号源的使用方式，同时提供简洁桌面和可选择的视频壁纸。
+
+本仓库发布源码，不包含个人设备连接密钥、应用签名密钥、设备日志、应用配置备份或第三方视频文件。上游说明保留在 [README-UPSTREAM.md](README-UPSTREAM.md)。
+
+## 已实现
+
+- 独立包名 `com.conreo.couchytv.whaley`，可与官方 Couchy 共存。
+- 微鲸网络与通用设置入口适配，使用原装应用的公开入口。
+- 校时完成前隐藏日期、时钟，网络和设置按钮保持可见；校时后恢复。
+- 新增完整中文日期，例如 `10 月 26 日 周一`。
+- 合并 Sonoma 自然、城市、水下、地球四组公开视频，共 134 段，跨合集随机播放，避免立即重复上一段。
+- 优先采用公开接口实际返回的 720p H.264 视频流，失败时回退兼容流。视频标题或接口的请求清晰度不作为实际分辨率证明。
+- 视频切换采用单播放器淡暗过渡，片尾约 12 秒时准备下一段播放地址；不同时运行两个视频解码器。
+- 地址仅在内存中短暂缓存，保留服务端有效期；离开桌面释放播放器并取消进行中的请求。
+- 旧 Android 系统下的配置保存、恢复兼容处理。
+
+## 兼容性与验证边界
+
+在微鲸 WTV55K1J、Android 5 / API 21 上进行了个人实机验证。其他型号不保证相同表现。
+
+本地有 17 项回归测试，覆盖视频流筛选、地址缓存与队列、预取时机、日期和时钟显示策略。已有实机证据包括中文日期、校时前后显示恢复、B站 720p 输出及片尾预取启用；没有逐段验证全部 134 个视频。Apple 内置航拍在该设备上观察到真实 1080p 输出，但首次加载可能反复超时，尚未在这个版本修复。
+
+这不是刷机工具，也不自动卸载或停用系统应用。原装主页、HDMI、U盘、遥控器和系统设置的行为取决于设备自身；不要据此直接禁用核心系统组件。
+
+## 构建
+
+需要 JDK 17、Android SDK Platform 34 / Build Tools 34.0.0。配置本地 SDK 后执行：
+
+```sh
+printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease
+```
+
+`assembleRelease` 默认生成未签名包。可使用自己的签名密钥，通过 `KEYSTORE_FILE`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD` 环境变量构建；也可使用 `-PlocalSign` 生成本地测试签名。密钥不得提交仓库。更新已安装应用必须使用相同签名，否则不能直接覆盖安装。
+
+公开源码默认使用渐变加载背景。个人设备中使用的、从视频提取的预览图不随源码分发；如有合法可用的自有图片，可在本地放置 `app/src/main/assets/bilibili-preview.jpg`，应用会读取它作为首次加载预览。
+
+## 视频来源
+
+仓库只保存公开元数据和播放逻辑，不打包视频，不附带登录凭证，也不绕过账号或付费限制。四组 B站内容均来自“谷好汇黑”：
+
+- [Sonoma 自然景观](https://www.bilibili.com/video/BV1tK4y1w7Wb/)：61 段。
+- [Sonoma 城市景观](https://www.bilibili.com/video/BV1734y1N7dv/)：30 段。
+- [Sonoma 水下景观](https://www.bilibili.com/video/BV1nz4y1L7JF/)：21 段。
+- [Sonoma 地球](https://www.bilibili.com/video/BV1Fz4y1V7Rt/)：22 段。
+
+视频及其他第三方内容的权利归各自权利人所有，不因本项目源码采用 GPL 而改变。远端接口、地址和可用清晰度可能变化。
+
+原项目内置的 Apple、Amazon 和社区航拍功能仍保留。该上游实现对部分装饰视频使用宽松 TLS 校验；本分支的 B站请求使用正常证书验证，不应将上游的宽松客户端复用于账号、配置或其他敏感请求。
+
+## 微鲸开机助手
+
+[boot-helper](boot-helper/) 保存独立开机助手的兼容补丁与说明，基于 MIT 授权的 Launch-On-Boot。它不改变 Android 默认 HOME，不替换系统主页。此处不包含签名密钥或设备配置。
+
+## 许可证
+
+应用及本分支修改遵循 [GPL-3.0](LICENSE)，第三方组件见 [LICENSING.md](LICENSING.md)。开机助手补丁保留其独立 MIT 许可证。感谢原项目和相关开源组件的作者。

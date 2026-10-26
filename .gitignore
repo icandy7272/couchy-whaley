@@ -1,0 +1,33 @@
+# Android / Gradle output and machine-specific settings
+.gradle/
+.kotlin/
+**/build/
+/local.properties
+/captures/
+.externalNativeBuild/
+.cxx/
+*.iml
+.idea/
+*.hprof
+.DS_Store
+
+# Local signing/ADB credentials, config backups and device evidence
+/local-signing/
+/releases/
+/auth/
+*.jks
+*.keystore
+*.pem
+*.key
+*.p12
+.env
+.env.*
+*adbkey*
+*.session.html
+pi-session-*.html
+.claude/
+.dsx/
+/tmp/
+
+# Optional, locally sourced video preview; media is not redistributed
+/app/src/main/assets/bilibili-preview.jpg
