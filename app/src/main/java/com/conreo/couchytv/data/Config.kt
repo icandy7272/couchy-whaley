@@ -79,6 +79,8 @@ data class LauncherConfig(
     val language: String = "",
     /** 0 = carousel (fixed selection), 1 = grid, 2 = dock */
     val layout: Int = 2, // Dock
+    /** Whaley: after power-on enter an HDMI input that has a device; BOOT_INPUT_OFF or 1..3 = preferred HDMI1..3 */
+    val bootInput: Int = BOOT_INPUT_OFF,
 )
 
 const val LAYOUT_CAROUSEL = 0
