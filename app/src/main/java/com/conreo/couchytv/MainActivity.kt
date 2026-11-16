@@ -12,7 +12,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import com.conreo.couchytv.data.ConfigStore
+import com.conreo.couchytv.data.WhaleyBoot
 import com.conreo.couchytv.ui.LauncherApp
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
@@ -68,6 +74,25 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LauncherApp(rescanTick)
+        }
+
+        runWhaleyBootDuties()
+    }
+
+    /** Once per power-on: duties the covered stock launcher would otherwise perform. */
+    private fun runWhaleyBootDuties() {
+        if (!WhaleyBootActions.claimBoot(this)) return
+        WhaleyBootActions.turnOffBootLed()
+        lifecycleScope.launch {
+            val bootInput = runCatching { ConfigStore(applicationContext).flow.first().bootInput }
+                .onFailure { android.util.Log.w("CouchyWhaleyBoot", "Cannot read boot input", it) }
+                .getOrNull() ?: return@launch
+            val preferred = WhaleyBoot.preferredPort(bootInput) ?: return@launch
+            val port = WhaleyBootActions.findBootHdmi(applicationContext, preferred) ?: return@launch
+            // Don't yank the user out of an app they opened while we were scanning.
+            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                WhaleyBootActions.enterHdmi(this@MainActivity, port)
+            }
         }
     }
 

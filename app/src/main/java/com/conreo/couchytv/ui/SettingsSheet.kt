@@ -72,6 +72,8 @@ import com.conreo.couchytv.Actions
 import com.conreo.couchytv.R
 import com.conreo.couchytv.data.AppEntry
 import com.conreo.couchytv.data.AppRepository
+import com.conreo.couchytv.data.BOOT_INPUT_COUNT
+import com.conreo.couchytv.data.BOOT_INPUT_OFF
 import com.conreo.couchytv.data.CategoryCfg
 import com.conreo.couchytv.data.ConfigStore
 import com.conreo.couchytv.data.DATE_FORMATS
@@ -861,6 +863,17 @@ private fun LauncherSettingsSubscreen(
             supportingContent = { Text(stringResource(R.string.item_language_sub)) },
             leadingContent = { Icon(AppIcons.Language, contentDescription = null) },
         )
+        run {
+            val idx = config.bootInput.coerceIn(BOOT_INPUT_OFF, BOOT_INPUT_COUNT - 1)
+            SelectorRow(
+                label = "开机进入信号源",
+                value = if (idx == BOOT_INPUT_OFF) stringResource(R.string.off) else "自动·优先 HDMI$idx",
+                steps = BOOT_INPUT_COUNT,
+                current = idx,
+                description = "开机时有设备的 HDMI 口会自动全屏打开（可唤醒游戏机），都没有则留在桌面",
+                onSelect = { v -> scope.launch { store.update { it.copy(bootInput = v) } } },
+            )
+        }
         SettingsItem(
             selected = false,
             onClick = { saveConfig() },
